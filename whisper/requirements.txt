@@ -1,0 +1,5 @@
+faster-whisper==1.1.1
+flask==3.1.0
+requests>=2.32
+# Pin below the version that defaults to XetHub CDN (fails on many networks)
+huggingface_hub>=0.23,<0.27

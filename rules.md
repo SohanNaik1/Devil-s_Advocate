@@ -1,29 +1,37 @@
-# Presentation Stress-Tester API Contracts (`rules.md`)
+# Project: Devil's Advocate
+A live presentation rehearsal tool. The user presents out loud, an AI panelist interrupts if it has something specific to challenge (quoting exact words), and the user receives a scorecard at the end.
 
-This document specifies the exact JSON schemas and endpoint behaviors expected by the frontend.
+## Tech Stack
+- **Backend:** Python (`app.py` / Flask) & Go standard library `net/http`.
+- **Speech-to-Text:** Python service using `faster-whisper` (model `small`, int8, CPU).
+- **Frontend:** Vanilla JS, HTML, and CSS (`index.html`). Uses `MediaRecorder` and `AudioContext`.
+- **Reasoning Model:** Gemma / Groq / Local LLM (strict JSON enforcement).
+- **Voice Out:** ElevenLabs & local audio synthesis.
 
 ---
 
-## 1. POST `/api/chunk`
+## API Contracts & Endpoint Specifications
 
-Sends an audio chunk captured by `MediaRecorder` when 1.2 seconds of silence is detected, or when the user clicks *"I'm done with this section"*.
+### 1. `POST /api/session`
+Initiates a new rehearsal session.
+- **Response:** `{"session_id": "sess_uuid"}`
 
-### Request
+### 2. `POST /api/chunk`
+Sends an audio chunk captured by `MediaRecorder` when silence is detected (or section ended).
 - **Method:** `POST`
 - **Content-Type:** `multipart/form-data`
 - **Body Fields:**
-  - `audio`: `Blob` (audio/webm, audio/wav, or audio/ogg)
-  - `kind`: `string` (`"speech"` or `"answer"`)
-  - `session_id`: `string` (UUID or session identifier)
-  - `client_timestamp`: `number` (optional, millisecond epoch)
-
-### Response (`200 OK`)
+  - `audio`: Blob (audio/webm, audio/wav)
+  - `kind`: string (`"speech"` or `"answer"`)
+  - `session_id`: string (Session ID)
+  - `offset_ms`: number (milliseconds from session start)
+- **Response (200 OK):**
 ```json
 {
   "status": "ok",
   "chunk_id": "chk_102",
-  "transcript": "Our new architecture guarantees 100% bug-free deployments by automatically rewriting its own logic in production.",
-  "running_transcript": "Good afternoon everyone. Today I'm presenting our breakthrough system. Our new architecture guarantees 100% bug-free deployments by automatically rewriting its own logic in production.",
+  "transcript": "Our new architecture guarantees 100% bug-free deployments...",
+  "running_transcript": "Good afternoon everyone... Our new architecture guarantees 100% bug-free deployments...",
   "wpm_current": 138,
   "interrupt": {
     "id": "int_1",
@@ -34,50 +42,53 @@ Sends an audio chunk captured by `MediaRecorder` when 1.2 seconds of silence is 
   }
 }
 ```
-*Note: If no interruption is triggered for this chunk, `interrupt` must be `null`.*
+*(If no interruption is triggered, `interrupt` is `null`)*
 
-```json
-{
-  "status": "ok",
-  "chunk_id": "chk_103",
-  "transcript": "We constrain the rewriter to deterministic finite state transitions.",
-  "running_transcript": "... We constrain the rewriter to deterministic finite state transitions.",
-  "wpm_current": 125,
-  "interrupt": null
-}
-```
-
----
-
-## 2. POST `/api/finish`
-
-Finalizes the current session, stops recording, and computes the complete presentation scorecard.
-
-### Request
+### 3. `POST /api/finish`
+Finalizes the session, stops recording, and computes the complete presentation scorecard.
 - **Method:** `POST`
 - **Content-Type:** `application/json`
 - **Body:**
 ```json
 {
-  "session_id": "sess_default",
+  "session_id": "sess_123",
   "duration_seconds": 184
 }
 ```
-
-### Response (`200 OK`)
+- **Response (200 OK):**
 ```json
 {
-  "session_id": "sess_default",
+  "session_id": "sess_123",
   "title": "Self-Rewriting AI Architecture Pitch",
-  "timestamp": "2026-10-23 14:05",
+  "timestamp": "2026-10-23 17:15",
   "scores": {
     "overall": 84,
     "delivery": 79,
     "content": 88
   },
   "overall": 84,
-  "delivery": 79,
-  "content": 88,
+  "delivery": {
+    "score": 79,
+    "wpm": 138,
+    "wpm_by_30s": [120, 138, 145, 112, 155, 130],
+    "filler_count": 15,
+    "fillers": [
+      { "word": "um", "count": 6 },
+      { "word": "like", "count": 9 }
+    ],
+    "long_pauses": [
+      { "timestamp": "00:38", "duration_seconds": 3.4, "context": "Hesitation before addressing undecidability constraint" }
+    ]
+  },
+  "content": {
+    "score": 88,
+    "went_well": [
+      { "point": "High-conviction opening", "quote": "Modern deployments suffer from critical downtime cascades." }
+    ],
+    "to_fix": [
+      { "point": "Absolute claim violation", "quote": "guarantees 100% bug-free deployments", "suggestion": "Frame around bounded finite state verification." }
+    ]
+  },
   "wpm_by_30s": [120, 138, 145, 112, 155, 130],
   "filler_words": [
     { "word": "um", "count": 6 },
@@ -86,108 +97,31 @@ Finalizes the current session, stops recording, and computes the complete presen
     { "word": "basically", "count": 3 }
   ],
   "long_pauses": [
-    { "timestamp": "00:38", "duration_seconds": 3.4, "context": "Hesitation before addressing undecidability constraint" },
-    { "timestamp": "01:24", "duration_seconds": 4.1, "context": "Silence following aggressive regulatory compliance interrupt" }
+    { "timestamp": "00:38", "duration_seconds": 3.4, "context": "Hesitation before addressing undecidability constraint" }
   ],
   "went_well": [
-    {
-      "point": "High-conviction opening and urgency framing",
-      "quote": "Modern deployments suffer from critical downtime cascades that cost millions."
-    },
-    {
-      "point": "Rigorous defense of bounded formal verification",
-      "quote": "Our isolated runtime confines mutations strictly to pre-certified formal invariants."
-    },
-    {
-      "point": "Calm composure under adversarial cross-examination",
-      "quote": "We enforce deterministic fallback to cold snapshots whenever variance is detected."
-    }
+    { "point": "High-conviction opening", "quote": "Modern deployments suffer from critical downtime cascades." }
   ],
   "to_fix": [
-    {
-      "point": "Absolute, unprovable reliability claims violating computational theory",
-      "quote": "guarantees 100% bug-free deployments"
-    },
-    {
-      "point": "Casual dismissal of regulatory mandates (DO-178C, FDA, SOX)",
-      "quote": "entirely eliminating the need for human QA testing"
-    },
-    {
-      "point": "Circular validation blind spot in self-modifying engine",
-      "quote": "automatically rewriting its own logic in production"
-    }
+    { "point": "Absolute claim violation", "quote": "guarantees 100% bug-free deployments", "suggestion": "Frame around bounded finite state verification." }
   ],
   "interruptions": [
     {
       "id": 1,
       "timestamp": "00:42",
-      "question": "Rice's Theorem proves semantic program properties are undecidable. How do you guarantee 100% bug-free execution?",
-      "user_answer": "We constrain mutations to bounded finite-state invariants verifiable in polynomial time.",
-      "resolved": true
-    },
-    {
-      "id": 2,
-      "timestamp": "01:30",
-      "question": "How can any aviation or healthcare auditor certify software that eliminates human review and rollback primitives?",
-      "user_answer": "We maintain dual-key cryptographic audit ledgers and hardware-enforced rollback registers.",
+      "question": "Rice's Theorem proves non-trivial semantic properties...",
+      "user_answer": "We address Rice's Theorem by restricting runtime re-synthesis...",
       "resolved": true
     }
   ]
 }
 ```
 
----
+### 4. `GET /history` and `GET /api/history`
+Returns last 10 session summaries.
 
-## 3. GET `/history`
+### 5. `GET /api/audio/<filename>`
+Streams audio file for interruption prompts.
 
-Fetches the last 10 presentation sessions for the history drawer / sidebar.
-
-### Response (`200 OK`)
-```json
-[
-  {
-    "id": "sess_1001",
-    "timestamp": "2026-10-23 13:45",
-    "title": "Self-Rewriting AI Architecture Pitch",
-    "overall": 84,
-    "delivery": 79,
-    "content": 88,
-    "scores": { "overall": 84, "delivery": 79, "content": 88 },
-    "duration": "03:12",
-    "interruptions_count": 2,
-    "wpm_avg": 133
-  },
-  {
-    "id": "sess_1000",
-    "timestamp": "2026-10-23 11:20",
-    "title": "Autonomous Agent Infrastructure",
-    "overall": 76,
-    "delivery": 82,
-    "content": 71,
-    "scores": { "overall": 76, "delivery": 82, "content": 71 },
-    "duration": "02:40",
-    "interruptions_count": 3,
-    "wpm_avg": 146
-  },
-  {
-    "id": "sess_999",
-    "timestamp": "2026-10-22 17:05",
-    "title": "Decentralized Model Consensus Protocol",
-    "overall": 91,
-    "delivery": 89,
-    "content": 93,
-    "scores": { "overall": 91, "delivery": 89, "content": 93 },
-    "duration": "04:15",
-    "interruptions_count": 1,
-    "wpm_avg": 128
-  }
-]
-```
-
----
-
-## 4. GET `/api/audio/<filename>`
-
-Streams the synthesized adversarial audio file for interruptions.
-- Content-Type: `audio/wav` or `audio/mpeg`
-- Responds with binary audio stream.
+### 6. `POST /api/upload`
+Uploads pitch deck (.pdf, .ppt, .pptx) for slide context parsing and priming questions.

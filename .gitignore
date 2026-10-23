@@ -1,0 +1,16 @@
+# Environment variables
+.env
+
+# Python
+whisper/.venv/
+__pycache__/
+*.pyc
+
+# Binaries & build artifacts
+server
+*.exe
+*.log
+/tmp/
+
+# OS / Editor
+.DS_Store
