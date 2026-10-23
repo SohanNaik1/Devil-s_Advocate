@@ -1,0 +1,32 @@
+{
+  "$schema": "https://antigravity.dev/schemas/skills.json",
+  "version": "1.0",
+  "skills": [
+    {
+      "name": "devils-advocate",
+      "path": ".agents/skills/devils-advocate/SKILL.md",
+      "description": "Use this skill when the user asks to stress-test, critique, challenge, or pressure-test any idea, argument, plan, proposal, presentation, hypothesis, or piece of writing. Activated by the /devils-advocate slash command or when the user explicitly requests adversarial feedback, devil's advocate analysis, steelmanning against a position, or rigorous logical scrutiny of a claim. This skill forces the agent to adopt a hostile, adversarial reasoning persona that surfaces empirical weaknesses, logical flaws, contextual blind spots, and generates a counter-defense prompt for the author to harden their argument.",
+      "slash_command": "/devils-advocate",
+      "trigger": "slash_command",
+      "source": "local"
+    },
+    {
+      "name": "awwwards",
+      "path": ".agents/skills/awwwards/SKILL.md",
+      "description": "Build award-caliber websites from a one-line prompt such as \"make me a portfolio, my name is Ana\". Uses the bar of sites that win Awwwards Site of the Day as a quality standard. Covers concept, art direction, typography, motion choreography, WebGL, page transitions, real content, SEO, accessibility and performance, then visual QA in a browser. Next.js by default, Astro for animation-heavy static showcases, or the stack the project already uses. Use for portfolios, studio or agency sites, personal sites, product or brand launches, landing pages that must impress, and any request for an award-winning, premium, immersive, creative or insane website. To only score or review a site without changing it, use /jury.",
+      "slash_command": "/awwwards",
+      "trigger": "slash_command",
+      "source": "imported",
+      "upstream": "https://github.com/juliobsz/skills"
+    },
+    {
+      "name": "jury",
+      "path": ".agents/skills/jury/SKILL.md",
+      "description": "Score any website the way an Awwwards jury would, from evidence alone. Screenshots every page type on desktop, a throttled phone and reduced motion, measures LCP, CLS, FPS, axe, keyboard focus and hover feedback, audits SEO and metadata, then a fresh critic that never sees the code scores Design, Usability, Creativity, Content and the six developer areas, with a ranked fix list. Use when someone asks to review, critique, score, rate or roast a website, portfolio or landing page, asks whether a site is good enough for Awwwards or Site of the Day, or wants design QA of a live URL or a local build. Not for building or redesigning a site; use /awwwards for that.",
+      "slash_command": "/jury",
+      "trigger": "slash_command",
+      "source": "imported",
+      "upstream": "https://github.com/juliobsz/skills"
+    }
+  ]
+}
