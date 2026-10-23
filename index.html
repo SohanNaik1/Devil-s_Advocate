@@ -1,18 +1,22 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Devil's Advocate — Adversarial Presentation Stress-Tester</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
-  
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap"
+    rel="stylesheet">
+
   <style>
     /* ==========================================================================
        WCAG AAA High-Contrast CSS Custom Properties (Light & Dark)
        ========================================================================== */
-    :root, [data-theme="dark"] {
+    :root,
+    [data-theme="dark"] {
       --bg-primary: #07080c;
       --bg-surface: #10131c;
       --bg-card: #161a26;
@@ -191,8 +195,17 @@
     }
 
     @keyframes pulse-ring {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(1.2); }
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.4;
+        transform: scale(1.2);
+      }
     }
 
     /* Buttons */
@@ -292,14 +305,16 @@
        ========================================================================== */
     .app-layout {
       display: flex;
-      flex: 1 0 auto; /* Takes up all remaining vertical space pushing footer flush to bottom */
+      flex: 1 0 auto;
+      /* Takes up all remaining vertical space pushing footer flush to bottom */
       width: 100%;
       position: relative;
       min-height: 0;
     }
 
     .main-workspace {
-      flex: 1 1 auto; /* Expands to fill available space */
+      flex: 1 1 auto;
+      /* Expands to fill available space */
       display: flex;
       flex-direction: column;
       padding: 24px 32px 36px;
@@ -416,7 +431,8 @@
       margin: 4px 0;
     }
 
-    .hero-dropzone:hover, .hero-dropzone.drag-active {
+    .hero-dropzone:hover,
+    .hero-dropzone.drag-active {
       border-color: var(--accent-indigo);
       background: rgba(99, 102, 241, 0.08);
       transform: translateY(-2px);
@@ -435,10 +451,21 @@
     }
 
     @media (max-width: 700px) {
-      .stats-strip { grid-template-columns: 1fr; }
-      .hero-title { font-size: 32px; }
-      .hero-container { padding: 36px 18px; }
-      .hero-dropzone { padding: 28px 16px; }
+      .stats-strip {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-title {
+        font-size: 32px;
+      }
+
+      .hero-container {
+        padding: 36px 18px;
+      }
+
+      .hero-dropzone {
+        padding: 28px 16px;
+      }
     }
 
     /* ==========================================================================
@@ -621,7 +648,9 @@
     }
 
     @media (max-width: 850px) {
-      .workflow-grid { grid-template-columns: 1fr; }
+      .workflow-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     .workflow-card {
@@ -751,7 +780,8 @@
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .upload-dropzone:hover, .upload-dropzone.drag-active {
+    .upload-dropzone:hover,
+    .upload-dropzone.drag-active {
       border-color: var(--accent-indigo);
       background: rgba(99, 102, 241, 0.08);
       transform: scale(1.005);
@@ -818,7 +848,9 @@
     }
 
     @keyframes spin {
-      to { transform: rotate(360deg); }
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     .analyzing-text {
@@ -958,8 +990,15 @@
     }
 
     @keyframes alert-in {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .interruption-top {
@@ -1047,9 +1086,17 @@
       height: 4px;
     }
 
-    .score-card.overall::before { background: var(--accent-emerald); }
-    .score-card.delivery::before { background: var(--accent-indigo); }
-    .score-card.content::before { background: var(--accent-amber); }
+    .score-card.overall::before {
+      background: var(--accent-emerald);
+    }
+
+    .score-card.delivery::before {
+      background: var(--accent-indigo);
+    }
+
+    .score-card.content::before {
+      background: var(--accent-amber);
+    }
 
     .score-label {
       font-size: 13px;
@@ -1090,7 +1137,8 @@
       display: flex;
       flex-direction: column;
       gap: 16px;
-      overflow: hidden; /* Strict overflow containment */
+      overflow: hidden;
+      /* Strict overflow containment */
       position: relative;
     }
 
@@ -1106,7 +1154,8 @@
       width: 100%;
       height: 220px;
       position: relative;
-      overflow: hidden; /* Prevent SVG overflow */
+      overflow: hidden;
+      /* Prevent SVG overflow */
       border-radius: 8px;
     }
 
@@ -1147,8 +1196,15 @@
     }
 
     @keyframes expand-drawer {
-      from { opacity: 0; transform: translateY(-6px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(-6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     /* Scorecard Details Grid */
@@ -1159,7 +1215,9 @@
     }
 
     @media (max-width: 900px) {
-      .details-grid { grid-template-columns: 1fr; }
+      .details-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     .detail-card {
@@ -1435,7 +1493,8 @@
       background: var(--bg-surface);
       border-top: 2px solid var(--border);
       padding: 38px 32px 24px;
-      margin-top: auto; /* Pushes footer flush to bottom */
+      margin-top: auto;
+      /* Pushes footer flush to bottom */
       box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.15);
       width: 100%;
     }
@@ -1581,6 +1640,7 @@
     }
   </style>
 </head>
+
 <body>
 
   <!-- ========================================================================
@@ -1597,7 +1657,8 @@
 
     <div class="header-actions">
       <!-- 1-Click High-Contrast Light/Dark Mode Toggle -->
-      <button id="themeToggleBtn" class="btn-ghost" aria-label="Toggle Light and Dark Mode" title="Toggle Light/Dark Theme">
+      <button id="themeToggleBtn" class="btn-ghost" aria-label="Toggle Light and Dark Mode"
+        title="Toggle Light/Dark Theme">
         <span id="themeIcon">☀️</span>
         <span id="themeLabel">Light Mode</span>
       </button>
@@ -1626,7 +1687,7 @@
            UI State 0: Dedicated Landing Page & Document Upload Hero Section
            ==================================================================== -->
       <section id="landingView" class="landing-view">
-        
+
         <!-- Document Upload Hero Section -->
         <div id="uploadView" class="hero-container">
           <div class="hero-badge">
@@ -1639,7 +1700,9 @@
           </h2>
 
           <p class="hero-subtitle">
-            Devil's Advocate is an adversarial AI that stress-tests pitches, research proposals, and keynotes. Upload your deck or whitepaper below, then rehearse out loud while our hostile AI interrogates your claims, exposes fallacies, and interrupts you in real-time.
+            Devil's Advocate is an adversarial AI that stress-tests pitches, research proposals, and keynotes. Upload
+            your deck or whitepaper below, then rehearse out loud while our hostile AI interrogates your claims, exposes
+            fallacies, and interrupts you in real-time.
           </p>
 
           <!-- Integrated Document Upload Drag-and-Drop Zone (Clearly Visible in Hero) -->
@@ -1648,7 +1711,8 @@
             <div>
               <div class="upload-title">Drag & Drop your Presentation (PDF / PPT / PPTX)</div>
               <div class="upload-subtitle">
-                Supports Pitch Decks (.pdf, .ppt, .pptx). Our AI decomposes claims, finds Rice's Theorem edge-cases, and primes hostile interruptions.
+                Supports Pitch Decks (.pdf, .ppt, .pptx). Our AI decomposes claims, finds Rice's Theorem edge-cases, and
+                primes hostile interruptions.
               </div>
             </div>
 
@@ -1668,7 +1732,8 @@
             <div class="analyzing-spinner"></div>
             <div>
               <div class="analyzing-text">Analyzing context & argumentative structure...</div>
-              <div style="font-size: 13px; color: var(--text-dim); margin-top: 4px;">Extracting assertions, formal claims, and regulatory touchpoints</div>
+              <div style="font-size: 13px; color: var(--text-dim); margin-top: 4px;">Extracting assertions, formal
+                claims, and regulatory touchpoints</div>
             </div>
             <div class="analyzing-steps">
               <span id="step1">⏳ Parsing slide hierarchy & core theses...</span>
@@ -1701,7 +1766,8 @@
             <div class="why-us-tag">ARCHITECTED FOR TRUTH</div>
             <h3 id="why-us-heading" class="why-us-title">Why Use Devil's Advocate?</h3>
             <p class="why-us-subtitle">
-              Polite feedback won't save a flawed premise in a high-stakes boardroom or thesis defense. We built an uncompromising stress-tester to harden arguments before they meet live scrutiny.
+              Polite feedback won't save a flawed premise in a high-stakes boardroom or thesis defense. We built an
+              uncompromising stress-tester to harden arguments before they meet live scrutiny.
             </p>
           </div>
 
@@ -1710,15 +1776,17 @@
             <div class="why-us-card">
               <div class="why-us-icon-wrapper icon-emerald" aria-hidden="true">
                 <!-- Clean Code/Terminal SVG -->
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="16 18 22 12 16 6"/>
-                  <polyline points="8 6 2 12 8 18"/>
-                  <line x1="14" y1="4" x2="10" y2="20"/>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="16 18 22 12 16 6" />
+                  <polyline points="8 6 2 12 8 18" />
+                  <line x1="14" y1="4" x2="10" y2="20" />
                 </svg>
               </div>
               <h4 class="why-us-card-title">Open-Source & Transparent</h4>
               <p class="why-us-card-desc">
-                Built for the community. Inspect the code, verify the agentic workflows, and run it locally with zero data privacy concerns.
+                Built for the community. Inspect the code, verify the agentic workflows, and run it locally with zero
+                data privacy concerns.
               </p>
               <div class="why-us-badge">
                 <span>100% LOCAL AUDITABLE</span>
@@ -1729,16 +1797,18 @@
             <div class="why-us-card">
               <div class="why-us-icon-wrapper icon-indigo" aria-hidden="true">
                 <!-- Clean Git Branch/Contribution SVG -->
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="18" cy="18" r="3"/>
-                  <circle cx="6" cy="6" r="3"/>
-                  <path d="M13 6h3a2 2 0 0 1 2 2v7"/>
-                  <line x1="6" y1="9" x2="6" y2="21"/>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="18" cy="18" r="3" />
+                  <circle cx="6" cy="6" r="3" />
+                  <path d="M13 6h3a2 2 0 0 1 2 2v7" />
+                  <line x1="6" y1="9" x2="6" y2="21" />
                 </svg>
               </div>
               <h4 class="why-us-card-title">Community-Driven Contributions</h4>
               <p class="why-us-card-desc">
-                We welcome pull requests! Developers can easily contribute via GitHub to build new adversarial personas or improve the evaluation logic.
+                We welcome pull requests! Developers can easily contribute via GitHub to build new adversarial personas
+                or improve the evaluation logic.
               </p>
               <div class="why-us-badge">
                 <span>GITHUB COLLABORATION</span>
@@ -1749,9 +1819,10 @@
             <div class="why-us-card">
               <div class="why-us-icon-wrapper icon-red" aria-hidden="true">
                 <!-- Clean Shield/Crosshair SVG -->
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                  <path d="M9 12l2 2 4-4"/>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  <path d="M9 12l2 2 4-4" />
                 </svg>
               </div>
               <h4 class="why-us-card-title">Bulletproof Your Pitch</h4>
@@ -1771,7 +1842,8 @@
             <span class="workflow-step-num">STAGE 01</span>
             <h3 class="workflow-heading">Ingest & Deconstruct</h3>
             <p class="workflow-desc">
-              Upload your PDF or PPT deck. Devil's Advocate maps your claims, flags Rice's Theorem edge cases, circular validation, and regulatory blind spots.
+              Upload your PDF or PPT deck. Devil's Advocate maps your claims, flags Rice's Theorem edge cases, circular
+              validation, and regulatory blind spots.
             </p>
           </div>
 
@@ -1779,7 +1851,8 @@
             <span class="workflow-step-num">STAGE 02</span>
             <h3 class="workflow-heading">Hostile Live Interruption</h3>
             <p class="workflow-desc">
-              Speak into your mic. The moment you state an absolute claim or unverified metric, the AI halts your pitch and demands mathematical justification.
+              Speak into your mic. The moment you state an absolute claim or unverified metric, the AI halts your pitch
+              and demands mathematical justification.
             </p>
           </div>
 
@@ -1787,7 +1860,8 @@
             <span class="workflow-step-num">STAGE 03</span>
             <h3 class="workflow-heading">Analytical Scorecard</h3>
             <p class="workflow-desc">
-              Review your minimalist WPM cadence chart, filler word counts, hesitation pauses, and exact verbatim quotes from your cross-examination defense.
+              Review your minimalist WPM cadence chart, filler word counts, hesitation pauses, and exact verbatim quotes
+              from your cross-examination defense.
             </p>
           </div>
         </div>
@@ -1801,7 +1875,8 @@
 
           <div style="font-size: 13px; font-weight: 700; color: var(--text-dim);">SPEAKER STATEMENT:</div>
           <div class="pitch-quote-box">
-            "Our new open-source AI architecture guarantees 100% bug-free deployments by automatically rewriting its own logic in production, entirely eliminating human QA."
+            "Our new open-source AI architecture guarantees 100% bug-free deployments by automatically rewriting its own
+            logic in production, entirely eliminating human QA."
           </div>
 
           <div class="ai-interrupt-box">
@@ -1809,7 +1884,8 @@
               <span>🚨 HOSTILE INTERRUPTION TRIGGERED (SEVERITY: CRITICAL)</span>
             </div>
             <div class="ai-interrupt-text">
-              "Rice's Theorem proves non-trivial semantic properties of programs are undecidable. How can you mathematically guarantee 100% bug-free behavior?"
+              "Rice's Theorem proves non-trivial semantic properties of programs are undecidable. How can you
+              mathematically guarantee 100% bug-free behavior?"
             </div>
             <div style="font-size: 12px; color: var(--accent-red); font-family: var(--font-mono);">
               Detected Fallacies: Absolute Claim Fallacy • Circular Validation Loop • Non-Falsifiable Premise
@@ -1833,11 +1909,13 @@
         </div>
 
         <div id="interruptQuestion" class="interruption-question">
-          "Rice's Theorem proves non-trivial semantic properties of programs are undecidable. How can you mathematically guarantee 100% bug-free behavior?"
+          "Rice's Theorem proves non-trivial semantic properties of programs are undecidable. How can you mathematically
+          guarantee 100% bug-free behavior?"
         </div>
 
         <div class="interruption-sub">
-          Microphone muted automatically while AI speaks. Recording resumes automatically for your response (marked as <strong>kind: "answer"</strong>).
+          Microphone muted automatically while AI speaks. Recording resumes automatically for your response (marked as
+          <strong>kind: "answer"</strong>).
         </div>
       </section>
 
@@ -1845,9 +1923,10 @@
            UI State 2: Clean, Distraction-Free Recording View (No Transcript Box)
            ==================================================================== -->
       <section id="recordingView" class="view-card recording-view">
-        
+
         <div class="active-deck-banner">
-          <span>📄 <strong>Loaded Deck:</strong> <span id="deckNameDisplay">Autonomous_AI_Deployments.pdf</span> (14 slides analyzed)</span>
+          <span>📄 <strong>Loaded Deck:</strong> <span id="deckNameDisplay">Autonomous_AI_Deployments.pdf</span> (14
+            slides analyzed)</span>
           <span style="color: var(--accent-emerald); font-weight: 700;">● Engine Primed</span>
         </div>
 
@@ -1892,11 +1971,12 @@
            UI State 3: Scorecard Report View (Minimalist SVG Chart)
            ==================================================================== -->
       <section id="scorecardView" class="view-card scorecard-view">
-        
+
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
           <div>
             <h2 style="font-size: 24px; font-weight: 800; letter-spacing: -0.02em;">Presentation Scorecard</h2>
-            <p style="font-size: 14px; color: var(--text-dim); margin-top: 4px;">Analytical review of pitch composure, delivery tempo, and response to adversarial challenges.</p>
+            <p style="font-size: 14px; color: var(--text-dim); margin-top: 4px;">Analytical review of pitch composure,
+              delivery tempo, and response to adversarial challenges.</p>
           </div>
           <button id="rehearseAgainBtn" class="btn btn-primary">
             <span>🔄 Rehearse Again</span>
@@ -1944,7 +2024,8 @@
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
             <div>
               <div style="font-size: 15px; font-weight: 700; color: var(--text-main);">Session Transcript</div>
-              <div style="font-size: 12px; color: var(--text-dim);">Compiled speech, adversarial interruptions, and response transcripts</div>
+              <div style="font-size: 12px; color: var(--text-dim);">Compiled speech, adversarial interruptions, and
+                response transcripts</div>
             </div>
             <button id="toggleTranscriptBtn" class="btn btn-secondary">
               <span>📄 View Full Transcript</span>
@@ -1957,7 +2038,7 @@
 
         <!-- Lists: Fillers, Long Pauses, Went Well, To Fix -->
         <div class="details-grid">
-          
+
           <!-- Filler Words List -->
           <div class="detail-card">
             <div class="section-title">
@@ -2037,7 +2118,8 @@
             <span style="font-weight: 800; font-size: 17px; letter-spacing: -0.02em;">Devil's Advocate</span>
           </div>
           <p class="footer-brand-desc">
-            Adversarial AI presentation stress-tester designed to pressure-test startup pitches, academic defenses, and keynote presentations before live scrutiny.
+            Adversarial AI presentation stress-tester designed to pressure-test startup pitches, academic defenses, and
+            keynote presentations before live scrutiny.
           </p>
         </div>
 
@@ -2045,7 +2127,7 @@
         <div class="footer-credits-col">
           <div class="footer-section-title">ENGINEERING & RESEARCH CREDITS</div>
           <div class="dev-cards-container">
-            
+
             <!-- Sohan Naik Card -->
             <div class="dev-card">
               <div class="dev-card-info">
@@ -2053,20 +2135,23 @@
                 <span class="dev-role">Core Architect & Dev</span>
               </div>
               <div class="dev-links">
-                <a href="https://github.com/SohanNaik1" target="_blank" rel="noopener noreferrer" class="dev-link" title="Sohan on GitHub">
+                <a href="https://github.com/SohanNaik1" target="_blank" rel="noopener noreferrer" class="dev-link"
+                  title="Sohan on GitHub">
                   <!-- GitHub SVG -->
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd"
+                      d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
                   </svg>
                   <span>SohanNaik1</span>
                 </a>
-                <a href="mailto:tohannaik059@gmail.com" class="dev-link" title="Email Sohan">
+                <a href="mailto:sohannaik059@gmail.com" class="dev-link" title="Email Sohan">
                   <!-- Email SVG -->
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                    <polyline points="22,6 12,13 2,6"/>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                    <polyline points="22,6 12,13 2,6" />
                   </svg>
-                  <span>tohannaik059@gmail.com</span>
+                  <span>sohannaik059@gmail.com</span>
                 </a>
               </div>
             </div>
@@ -2078,18 +2163,21 @@
                 <span class="dev-role">Systems & AI Dev</span>
               </div>
               <div class="dev-links">
-                <a href="https://github.com/Sukeertjoshi-8" target="_blank" rel="noopener noreferrer" class="dev-link" title="Sukeert on GitHub">
+                <a href="https://github.com/Sukeertjoshi-8" target="_blank" rel="noopener noreferrer" class="dev-link"
+                  title="Sukeert on GitHub">
                   <!-- GitHub SVG -->
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd"
+                      d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
                   </svg>
                   <span>Sukeertjoshi-8</span>
                 </a>
                 <a href="mailto:sukeertjoshi@gmail.com" class="dev-link" title="Email Sukeert">
                   <!-- Email SVG -->
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                    <polyline points="22,6 12,13 2,6"/>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                    <polyline points="22,6 12,13 2,6" />
                   </svg>
                   <span>sukeertjoshi@gmail.com</span>
                 </a>
@@ -2221,7 +2309,7 @@
      */
     function showView(viewName) {
       currentView = viewName;
-      
+
       landingView.style.display = "none";
       recordingView.classList.remove("active");
       scorecardView.classList.remove("active");
@@ -2573,7 +2661,7 @@
         animationFrameId = requestAnimationFrame(mockAnim);
       }
       mockAnim();
-      
+
       setTimeout(triggerChunkCut, 1500);
     }
 
@@ -3033,4 +3121,5 @@
 
   </script>
 </body>
+
 </html>
