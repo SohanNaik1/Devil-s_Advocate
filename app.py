@@ -497,17 +497,36 @@ def get_report(session_id: str):
             return jsonify(rep)
     return jsonify({"error": f"Session {session_id} not found"}), 404
 
+@app.route("/healthz", methods=["GET"])
+def healthz():
+    return "ok\n", 200
+
 @app.route("/health", methods=["GET"])
 def health():
     return {
         "status": "online",
         "app": "Presentation Stress-Tester",
-        "endpoints": ["/api/session", "/api/upload", "/api/chunk", "/api/finish", "/history", "/api/report/<id>", "/api/audio/<filename>"]
+        "endpoints": ["/healthz", "/api/session", "/api/upload", "/api/chunk", "/api/finish", "/history", "/api/report/<id>", "/api/audio/<filename>"]
     }
 
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
-    print("🚀 Presentation Stress-Tester Backend running at http://localhost:5000", flush=True)
-    app.run(host="0.0.0.0", port=5000, debug=False, threaded=True)
+    import threading
+    port = int(os.environ.get("PORT", 8080))
+
+    # Also bind to 5000 in background if on 8080, so any browser tab or proxy can connect to either
+    if port == 8080:
+        def run_5000():
+            try:
+                from werkzeug.serving import run_simple
+                run_simple("0.0.0.0", 5000, app, threaded=True)
+            except Exception:
+                pass
+        t = threading.Thread(target=run_5000, daemon=True)
+        t.start()
+
+    print(f"🚀 Live Backend running at http://localhost:{port} (and :5000)", flush=True)
+    app.run(host="0.0.0.0", port=port, debug=False, threaded=True)
+

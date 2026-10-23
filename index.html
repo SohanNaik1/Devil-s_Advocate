@@ -2247,6 +2247,11 @@
     const themeLabel = document.getElementById("themeLabel");
 
     /**
+     * Live Backend Configuration (Port 8080)
+     */
+    const BACKEND_BASE = window.location.port === "8080" ? "" : "http://localhost:8080";
+
+    /**
      * State Variables
      */
     let currentView = "landing"; // "landing" | "upload" | "recording" | "scorecard"
@@ -2431,7 +2436,7 @@
           formData.append("filename", fileName);
         }
 
-        const res = await fetch("/api/upload", {
+        const res = await fetch(`${BACKEND_BASE}/api/upload`, {
           method: "POST",
           body: formData
         });
@@ -2471,7 +2476,7 @@
     async function initMicAndAudio() {
       try {
         try {
-          const sessRes = await fetch("/api/session", { method: "POST" });
+          const sessRes = await fetch(`${BACKEND_BASE}/api/session`, { method: "POST" });
           if (sessRes.ok) {
             const sessData = await sessRes.json();
             if (sessData.session_id) currentSessionId = sessData.session_id;
@@ -2696,7 +2701,7 @@
       formData.append("offset_ms", offsetMs.toString());
 
       try {
-        const res = await fetch("/api/chunk", {
+        const res = await fetch(`${BACKEND_BASE}/api/chunk`, {
           method: "POST",
           body: formData
         });
@@ -2707,6 +2712,8 @@
           runningTranscriptText = data.running_transcript;
         } else if (data.transcript) {
           runningTranscriptText += (runningTranscriptText ? " " : "") + data.transcript;
+        } else if (data.text) {
+          runningTranscriptText += (runningTranscriptText ? " " : "") + data.text;
         }
 
         if (nextChunkKind === "answer") {
@@ -2738,7 +2745,8 @@
       interruptionBanner.classList.add("active");
 
       // 2. Play challenge audio file from real endpoint
-      const audioUrl = interruptObj.audio_url || "/api/audio/interrupt_1.wav";
+      const rawAudioUrl = interruptObj.audio_url || "/api/audio/interrupt_1.wav";
+      const audioUrl = rawAudioUrl.startsWith("http") ? rawAudioUrl : `${BACKEND_BASE}${rawAudioUrl}`;
       const audio = new Audio(audioUrl);
 
       const resumeRecordingAfterInterruption = () => {
@@ -2802,7 +2810,7 @@
       const elapsedSec = sessionStartTime ? Math.round((Date.now() - sessionStartTime) / 1000) : 180;
 
       try {
-        const res = await fetch("/api/finish", {
+        const res = await fetch(`${BACKEND_BASE}/api/finish`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -2820,7 +2828,7 @@
       } catch (err) {
         console.error("Finish session error:", err);
         try {
-          const repRes = await fetch("/api/report/" + sessId);
+          const repRes = await fetch(`${BACKEND_BASE}/api/report/${sessId}`);
           if (repRes.ok) {
             const repData = await repRes.json();
             renderScorecard(repData);
@@ -3045,7 +3053,7 @@
     if (rehearseAgainBtn) {
       rehearseAgainBtn.addEventListener("click", async () => {
         try {
-          const res = await fetch("/api/session", { method: "POST" });
+          const res = await fetch(`${BACKEND_BASE}/api/session`, { method: "POST" });
           if (res.ok) {
             const d = await res.json();
             if (d.session_id) currentSessionId = d.session_id;
@@ -3062,7 +3070,7 @@
        ========================================================================== */
     async function loadHistoryFromBackend() {
       try {
-        const res = await fetch("/api/history");
+        const res = await fetch(`${BACKEND_BASE}/history`);
         if (!res.ok) throw new Error("History HTTP " + res.status);
         const sessions = await res.json();
         renderHistorySidebar(sessions);
@@ -3100,7 +3108,7 @@
           document.querySelectorAll(".history-card").forEach(c => c.classList.remove("active"));
           card.classList.add("active");
           try {
-            const repRes = await fetch("/api/report/" + s.id);
+            const repRes = await fetch(`${BACKEND_BASE}/api/report/${s.id}`);
             if (repRes.ok) {
               const repData = await repRes.json();
               renderScorecard(repData);
