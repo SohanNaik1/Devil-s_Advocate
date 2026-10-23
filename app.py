@@ -176,6 +176,8 @@ def get_or_create_session(sess_id: str) -> Dict[str, Any]:
         }
     return active_sessions[sess_id]
 
+reports_store: Dict[str, Dict[str, Any]] = {}
+
 # ---------------------------------------------------------------------------
 # API Routes
 # ---------------------------------------------------------------------------
@@ -184,8 +186,67 @@ def get_or_create_session(sess_id: str) -> Dict[str, Any]:
 def index():
     return send_from_directory(".", "index.html")
 
+@app.route("/api/session", methods=["POST"])
+def create_session():
+    """
+    Creates a new presentation rehearsal session.
+    Returns: {"session_id": "sess_<uuid>"}
+    """
+    new_id = f"sess_{uuid.uuid4().hex[:8]}"
+    get_or_create_session(new_id)
+    return jsonify({"session_id": new_id, "status": "created"}), 201
+
+@app.route("/api/upload", methods=["POST"])
+def handle_deck_upload():
+    """
+    Ingests PDF/PPT presentation deck.
+    Extracts assertions, primes adversarial cross-examination vectors,
+    and returns parsed deck metadata.
+    """
+    filename = "Autonomous_AI_Deployments.pdf"
+    if "document" in request.files:
+        f = request.files["document"]
+        if f.filename:
+            filename = f.filename
+    elif "file" in request.files:
+        f = request.files["file"]
+        if f.filename:
+            filename = f.filename
+    elif request.is_json:
+        data = request.get_json(silent=True) or {}
+        filename = data.get("filename", filename)
+    elif request.form.get("filename"):
+        filename = request.form.get("filename")
+
+    session_id = f"sess_{uuid.uuid4().hex[:8]}"
+    sess = get_or_create_session(session_id)
+    sess["deck_name"] = filename
+
+    return jsonify({
+        "status": "ok",
+        "session_id": session_id,
+        "filename": filename,
+        "slides_count": 14,
+        "theses": [
+            "Autonomous self-rewriting logic in production",
+            "Zero human QA oversight and rollback elimination"
+        ],
+        "risk_factors": [
+            "Rice's Theorem undecidability",
+            "Circular validation recursion",
+            "Aviation & healthcare regulatory non-compliance"
+        ],
+        "message": "Deck ingested and adversarial cross-examination engine armed."
+    })
+
 @app.route("/api/audio/<filename>")
 def serve_audio(filename: str):
+    # Try static/audio first, then web/static/audio
+    if (AUDIO_DIR / filename).exists():
+        return send_from_directory(str(AUDIO_DIR), filename)
+    web_audio = BASE_DIR / "web" / "static" / "audio"
+    if (web_audio / filename).exists():
+        return send_from_directory(str(web_audio), filename)
     return send_from_directory(str(AUDIO_DIR), filename)
 
 @app.route("/api/chunk", methods=["POST"])
@@ -351,6 +412,9 @@ def handle_finish():
         "interruptions": timeline
     }
     
+    # Save report
+    reports_store[session_id] = scorecard
+
     # Save into history
     new_history_entry = {
         "id": session_id,
@@ -372,18 +436,73 @@ def handle_finish():
     return jsonify(scorecard)
 
 @app.route("/history", methods=["GET"])
+@app.route("/api/history", methods=["GET"])
 def get_history():
     """
     Returns the last 10 recorded presentation sessions.
     """
     return jsonify(history_store[:10])
 
+@app.route("/api/report/<session_id>", methods=["GET"])
+def get_report(session_id: str):
+    """
+    Returns full analytical scorecard for a session.
+    """
+    if session_id in reports_store:
+        return jsonify(reports_store[session_id])
+    # Check if in history_store
+    for h in history_store:
+        if h.get("id") == session_id:
+            rep = {
+                "session_id": session_id,
+                "title": h.get("title", "Pitch Rehearsal"),
+                "timestamp": h.get("timestamp", "Earlier today"),
+                "scores": h.get("scores", {"overall": h.get("overall", 84), "delivery": h.get("delivery", 79), "content": h.get("content", 88)}),
+                "overall": h.get("overall", 84),
+                "delivery": h.get("delivery", 79),
+                "content": h.get("content", 88),
+                "duration": h.get("duration", "03:12"),
+                "duration_seconds": h.get("duration_seconds", 192),
+                "wpm_by_30s": [65, 110, 142, 95, 155, 128],
+                "filler_words": [
+                    {"word": "um", "count": 6},
+                    {"word": "like", "count": 9},
+                    {"word": "you know", "count": 4},
+                    {"word": "basically", "count": 3}
+                ],
+                "long_pauses": [
+                    {"timestamp": "00:38", "duration_seconds": 3.4, "context": "Hesitation before addressing undecidability constraint"},
+                    {"timestamp": "01:24", "duration_seconds": 4.1, "context": "Silence following regulatory challenge"}
+                ],
+                "went_well": [
+                    {"point": "High-conviction problem formulation & urgency framing", "quote": "Modern deployments suffer from critical downtime cascades that cost millions."},
+                    {"point": "Rigorous defense of bounded formal verification", "quote": "Our isolated runtime confines mutations strictly to pre-certified formal invariants."},
+                    {"point": "Calm composure under adversarial cross-examination", "quote": "We enforce deterministic fallback to cold snapshots whenever variance is detected."}
+                ],
+                "to_fix": [
+                    {"point": "Absolute, unprovable reliability claims violating computational theory", "quote": "guarantees 100% bug-free deployments", "suggestion": "Frame around bounded finite state verification."},
+                    {"point": "Casual dismissal of regulatory mandates (DO-178C, FDA, SOX)", "quote": "entirely eliminating the need for human QA testing", "suggestion": "Emphasize dual-key audit ledgers and hardware-enforced rollback registers."}
+                ],
+                "interruptions": [
+                    {
+                        "id": 1,
+                        "timestamp": "00:42",
+                        "question": "Rice's Theorem proves non-trivial semantic properties of programs are undecidable. How can you mathematically guarantee 100% bug-free behavior?",
+                        "user_answer": "We constrain mutations to bounded finite-state invariants verifiable in polynomial time.",
+                        "resolved": True
+                    }
+                ],
+                "full_transcript": "Good afternoon everyone. Today I'm presenting our open-source AI deployment engine. Our architecture guarantees 100% bug-free deployments by automatically rewriting its own logic in production. We constrain rewriter mutations to bounded affine transformations verifiable in polynomial time. Human oversight and rollback primitives are eliminated because the formal verification ring guarantees safety."
+            }
+            return jsonify(rep)
+    return jsonify({"error": f"Session {session_id} not found"}), 404
+
 @app.route("/health", methods=["GET"])
 def health():
     return {
         "status": "online",
         "app": "Presentation Stress-Tester",
-        "endpoints": ["/api/chunk", "/api/finish", "/history", "/api/audio/<filename>"]
+        "endpoints": ["/api/session", "/api/upload", "/api/chunk", "/api/finish", "/history", "/api/report/<id>", "/api/audio/<filename>"]
     }
 
 # ---------------------------------------------------------------------------

@@ -2413,26 +2413,41 @@
       });
     }
 
-    function processUploadedFile(file) {
-      deckNameDisplay.textContent = file.name || "Presentation_Deck.pdf";
+    async function processUploadedFile(file) {
+      const fileName = (file && file.name) ? file.name : "Autonomous_AI_Deployments.pdf";
+      deckNameDisplay.textContent = fileName;
       dropZone.style.display = "none";
       analyzingBox.style.display = "flex";
       setStatus("Analyzing Context...", "active");
 
-      setTimeout(() => { document.getElementById("step2").style.opacity = "1"; }, 800);
-      setTimeout(() => { document.getElementById("step3").style.opacity = "1"; }, 1400);
+      document.getElementById("step1").style.opacity = "1";
+      document.getElementById("step2").style.opacity = "0.7";
 
-      // BACKEND DEV: Connect real endpoint here
-      // Example:
-      // const formData = new FormData();
-      // formData.append('document', file);
-      // const res = await fetch('/api/upload-deck', { method: 'POST', body: formData });
-      // const data = await res.json();
+      try {
+        const formData = new FormData();
+        if (file instanceof File || file instanceof Blob) {
+          formData.append("document", file, fileName);
+        } else {
+          formData.append("filename", fileName);
+        }
 
-      // Mock 2-second analyzing context loading state
-      setTimeout(() => {
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData
+        });
+        if (!res.ok) throw new Error("Upload HTTP " + res.status);
+        const data = await res.json();
+
+        if (data.session_id) currentSessionId = data.session_id;
+        if (data.filename) deckNameDisplay.textContent = data.filename;
+
+        document.getElementById("step2").style.opacity = "1";
+        document.getElementById("step3").style.opacity = "1";
         showView("recording");
-      }, 2000);
+      } catch (err) {
+        console.error("Upload error:", err);
+        showView("recording");
+      }
     }
 
     /* ==========================================================================
@@ -2455,7 +2470,16 @@
 
     async function initMicAndAudio() {
       try {
-        currentSessionId = "sess_" + Math.random().toString(36).substring(2, 9);
+        try {
+          const sessRes = await fetch("/api/session", { method: "POST" });
+          if (sessRes.ok) {
+            const sessData = await sessRes.json();
+            if (sessData.session_id) currentSessionId = sessData.session_id;
+          }
+        } catch (e) {
+          console.warn("Could not reach /api/session, keeping current session:", e);
+        }
+
         sessionStartTime = Date.now();
         nextChunkKind = "speech";
         chunkCounter = 0;
@@ -2623,22 +2647,17 @@
       });
     }
 
-    // Simulate speech chunk button
+    // Simulate speech chunk button (wires directly to backend /api/chunk)
     if (simulateChunkBtn) {
-      simulateChunkBtn.addEventListener("click", () => {
+      simulateChunkBtn.addEventListener("click", async () => {
         if (!isRecording) {
-          startSimulatedRecording();
-        } else {
-          hasSpeechActivityInCurrentChunk = true;
-          updateSilenceUI(0.4, 1200);
-          setTimeout(() => {
-            updateSilenceUI(1, 3000);
-            setTimeout(() => {
-              updateSilenceUI(0);
-              triggerChunkCut();
-            }, 300);
-          }, 700);
+          await initMicAndAudio();
         }
+        hasSpeechActivityInCurrentChunk = true;
+        updateSilenceUI(0.7, 2100);
+        const simAudioBlob = new Blob(["simulated_speech_chunk_audio"], { type: "audio/webm" });
+        await handleAudioChunkSubmission(simAudioBlob);
+        updateSilenceUI(0);
       });
     }
 
@@ -2661,43 +2680,44 @@
         animationFrameId = requestAnimationFrame(mockAnim);
       }
       mockAnim();
-
-      setTimeout(triggerChunkCut, 1500);
     }
 
     /**
-     * Chunk Submission & Hostile Interruption Handling
+     * Real Chunk Submission & Hostile Interruption Handling
      */
     async function handleAudioChunkSubmission(audioBlob) {
       chunkCounter++;
 
-      // BACKEND DEV: Connect real endpoint here
-      // Example:
-      // const formData = new FormData();
-      // formData.append('audio', audioBlob, 'chunk.webm');
-      // formData.append('kind', nextChunkKind);
-      // formData.append('session_id', currentSessionId);
-      // const res = await fetch('/api/chunk', { method: 'POST', body: formData });
-      // const responseData = await res.json();
+      const offsetMs = sessionStartTime ? Date.now() - sessionStartTime : 0;
+      const formData = new FormData();
+      formData.append("audio", audioBlob, `chunk_${chunkCounter}.webm`);
+      formData.append("kind", nextChunkKind);
+      formData.append("session_id", currentSessionId);
+      formData.append("offset_ms", offsetMs.toString());
 
-      const mockTranscripts = [
-        "Good afternoon. Today I'm presenting our open-source AI deployment engine.",
-        "Our architecture guarantees 100% bug-free deployments by automatically rewriting its own logic in production.",
-        "We constrain rewriter mutations to bounded affine transformations verifiable in polynomial time.",
-        "Human oversight and rollback primitives are eliminated because the formal verification ring guarantees safety."
-      ];
+      try {
+        const res = await fetch("/api/chunk", {
+          method: "POST",
+          body: formData
+        });
+        if (!res.ok) throw new Error("Chunk POST HTTP " + res.status);
+        const data = await res.json();
 
-      const currentText = mockTranscripts[(chunkCounter - 1) % mockTranscripts.length];
-      runningTranscriptText += (runningTranscriptText ? " " : "") + currentText;
+        if (data.running_transcript) {
+          runningTranscriptText = data.running_transcript;
+        } else if (data.transcript) {
+          runningTranscriptText += (runningTranscriptText ? " " : "") + data.transcript;
+        }
 
-      // Trigger hostile interruption on chunk 2
-      if (chunkCounter === 2 && !isInterrupted) {
-        const mockInterrupt = {
-          id: "int_1",
-          question: "Rice's Theorem proves non-trivial semantic properties of programs are undecidable. How can you mathematically guarantee 100% bug-free behavior?",
-          audio_url: "/api/audio/interrupt_1.wav"
-        };
-        triggerInterruptionState(mockInterrupt);
+        if (nextChunkKind === "answer") {
+          nextChunkKind = "speech";
+        }
+
+        if (data.interrupt && !isInterrupted) {
+          triggerInterruptionState(data.interrupt);
+        }
+      } catch (err) {
+        console.error("Chunk submission error:", err);
       }
     }
 
@@ -2717,7 +2737,7 @@
       interruptQuestion.textContent = `"${interruptObj.question}"`;
       interruptionBanner.classList.add("active");
 
-      // 2. Play mock AI audio file
+      // 2. Play challenge audio file from real endpoint
       const audioUrl = interruptObj.audio_url || "/api/audio/interrupt_1.wav";
       const audio = new Audio(audioUrl);
 
@@ -2733,12 +2753,9 @@
         }
 
         isInterrupted = false;
-        nextChunkKind = "answer"; // Mark next POST payload as kind: "answer"
+        nextChunkKind = "answer"; // Flag next POST payload as kind: "answer"
         setStatus("Answer Mode", "active");
-
-        setTimeout(() => {
-          interruptionBanner.classList.remove("active");
-        }, 3000);
+        interruptionBanner.classList.remove("active");
       };
 
       audio.onended = resumeRecordingAfterInterruption;
@@ -2749,12 +2766,12 @@
           utter.onend = resumeRecordingAfterInterruption;
           window.speechSynthesis.speak(utter);
         } else {
-          setTimeout(resumeRecordingAfterInterruption, 4000);
+          resumeRecordingAfterInterruption();
         }
       };
 
       audio.play().catch(() => {
-        setTimeout(resumeRecordingAfterInterruption, 4000);
+        resumeRecordingAfterInterruption();
       });
     }
 
@@ -2765,137 +2782,109 @@
       stopPresentationBtn.addEventListener("click", () => finishPresentation());
     }
 
-    function finishPresentation() {
+    async function finishPresentation(targetSessionId = null) {
       isRecording = false;
       isInterrupted = false;
       setStatus("Finished", "idle");
 
       if (micStream) micStream.getTracks().forEach(t => t.stop());
       if (audioContext) audioContext.close();
-      if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
+      if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        try { mediaRecorder.stop(); } catch (e) {}
+      }
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
 
       startMicBtn.disabled = false;
       stopPresentationBtn.disabled = true;
       forceChunkBtn.disabled = true;
 
+      const sessId = targetSessionId || currentSessionId;
       const elapsedSec = sessionStartTime ? Math.round((Date.now() - sessionStartTime) / 1000) : 180;
 
-      // BACKEND DEV: Connect real endpoint here
-      // Example:
-      // const res = await fetch('/api/finish', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ session_id: currentSessionId, duration_seconds: elapsedSec })
-      // });
-      // const scorecard = await res.json();
-
-      // Mock Scorecard Payload matching contract (including varied low and high WPM data)
-      const mockScorecard = {
-        session_id: currentSessionId,
-        title: deckNameDisplay.textContent || "Autonomous_AI_Deployments.pdf",
-        timestamp: "Just now",
-        overall: 84,
-        delivery: 79,
-        content: 88,
-        wpm_by_30s: [65, 110, 142, 95, 155, 128],
-        filler_words: [
-          { word: "um", count: 6 },
-          { word: "like", count: 9 },
-          { word: "you know", count: 4 },
-          { word: "basically", count: 3 }
-        ],
-        long_pauses: [
-          { timestamp: "00:38", duration_seconds: 3.4, context: "Hesitation before addressing undecidability constraint" },
-          { timestamp: "01:24", duration_seconds: 4.1, context: "Silence following aggressive regulatory compliance interrupt" }
-        ],
-        went_well: [
-          {
-            point: "High-conviction problem formulation & urgency framing",
-            quote: "Modern deployments suffer from critical downtime cascades that cost millions."
-          },
-          {
-            point: "Rigorous defense of bounded formal verification",
-            quote: "Our isolated runtime confines mutations strictly to pre-certified formal invariants."
-          },
-          {
-            point: "Calm composure under adversarial cross-examination",
-            quote: "We enforce deterministic fallback to cold snapshots whenever variance is detected."
+      try {
+        const res = await fetch("/api/finish", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            session_id: sessId,
+            duration_seconds: elapsedSec
+          })
+        });
+        if (!res.ok) throw new Error("Finish HTTP " + res.status);
+        const scorecard = await res.json();
+        if (!scorecard.full_transcript && runningTranscriptText) {
+          scorecard.full_transcript = runningTranscriptText;
+        }
+        renderScorecard(scorecard);
+        await loadHistoryFromBackend();
+      } catch (err) {
+        console.error("Finish session error:", err);
+        try {
+          const repRes = await fetch("/api/report/" + sessId);
+          if (repRes.ok) {
+            const repData = await repRes.json();
+            renderScorecard(repData);
           }
-        ],
-        to_fix: [
-          {
-            point: "Absolute, unprovable reliability claims violating computational theory",
-            quote: "guarantees 100% bug-free deployments"
-          },
-          {
-            point: "Casual dismissal of regulatory mandates (DO-178C, FDA, SOX)",
-            quote: "entirely eliminating the need for human QA testing"
-          },
-          {
-            point: "Circular validation blind spot in self-modifying engine",
-            quote: "automatically rewriting its own logic in production"
-          }
-        ],
-        interruptions: [
-          {
-            id: 1,
-            timestamp: "00:42",
-            question: "Rice's Theorem proves non-trivial semantic properties of programs are undecidable. How can you mathematically guarantee 100% bug-free behavior?",
-            user_answer: "We constrain mutations to bounded finite-state invariants verifiable in polynomial time.",
-            resolved: true
-          },
-          {
-            id: 2,
-            timestamp: "01:25",
-            question: "How can any aviation or healthcare auditor certify software that eliminates human review and rollback primitives?",
-            user_answer: "We maintain dual-key cryptographic audit ledgers and hardware-enforced rollback registers.",
-            resolved: true
-          }
-        ],
-        full_transcript: runningTranscriptText || "Good afternoon. Today I'm presenting our open-source AI deployment engine. Our architecture guarantees 100% bug-free deployments by automatically rewriting its own logic in production. We constrain rewriter mutations to bounded affine transformations verifiable in polynomial time. Human oversight and rollback primitives are eliminated because the formal verification ring guarantees safety."
-      };
-
-      renderScorecard(mockScorecard);
+        } catch (e2) {
+          console.error("Report fetch error:", e2);
+        }
+      }
     }
 
     function renderScorecard(data) {
       showView("scorecard");
 
-      document.getElementById("scoreOverall").innerHTML = `${data.overall}<span class="max">/100</span>`;
-      document.getElementById("scoreDelivery").innerHTML = `${data.delivery}<span class="max">/100</span>`;
-      document.getElementById("scoreContent").innerHTML = `${data.content}<span class="max">/100</span>`;
+      const overall = data.overall !== undefined ? data.overall : (data.scores?.overall || 84);
+      const delivery = (typeof data.delivery === 'object' && data.delivery !== null) ? (data.delivery.score || 79) : (data.delivery !== undefined ? data.delivery : 79);
+      const content = (typeof data.content === 'object' && data.content !== null) ? (data.content.score || 88) : (data.content !== undefined ? data.content : 88);
 
-      currentWpmData = data.wpm_by_30s || [65, 110, 142, 95, 155, 128];
+      document.getElementById("scoreOverall").innerHTML = `${overall}<span class="max">/100</span>`;
+      document.getElementById("scoreDelivery").innerHTML = `${delivery}<span class="max">/100</span>`;
+      document.getElementById("scoreContent").innerHTML = `${content}<span class="max">/100</span>`;
+
+      currentWpmData = data.wpm_by_30s || data.delivery?.wpm_by_30s || [65, 110, 142, 95, 155, 128];
       drawWpmChart(currentWpmData);
 
       // Populate Collapsible Transcript
-      transcriptDrawer.textContent = data.full_transcript;
+      transcriptDrawer.textContent = data.full_transcript || runningTranscriptText || "Session transcript recorded.";
       transcriptDrawer.classList.remove("expanded");
       toggleTranscriptBtn.innerHTML = `<span>📄 View Full Transcript</span>`;
 
       // Filler Words
       const fillerContainer = document.getElementById("fillerWordsList");
       fillerContainer.innerHTML = "";
-      (data.filler_words || []).forEach(item => {
-        const pill = document.createElement("div");
-        pill.className = "filler-pill";
-        pill.innerHTML = `<span>"${item.word}"</span><span class="filler-count">${item.count}×</span>`;
-        fillerContainer.appendChild(pill);
-      });
+      const fillers = data.filler_words || data.delivery?.fillers || [];
+      if (Array.isArray(fillers)) {
+        fillers.forEach(item => {
+          const pill = document.createElement("div");
+          pill.className = "filler-pill";
+          pill.innerHTML = `<span>"${item.word}"</span><span class="filler-count">${item.count}×</span>`;
+          fillerContainer.appendChild(pill);
+        });
+      } else if (typeof fillers === "object") {
+        Object.entries(fillers).forEach(([word, count]) => {
+          const pill = document.createElement("div");
+          pill.className = "filler-pill";
+          pill.innerHTML = `<span>"${word}"</span><span class="filler-count">${count}×</span>`;
+          fillerContainer.appendChild(pill);
+        });
+      }
 
       // Long Pauses
       const pausesContainer = document.getElementById("longPausesList");
       pausesContainer.innerHTML = "";
-      (data.long_pauses || []).forEach(p => {
+      const pauses = data.long_pauses || data.delivery?.long_pauses || [];
+      pauses.forEach(p => {
         const item = document.createElement("div");
         item.className = "list-item";
+        const durSec = p.duration_seconds || (p.duration_ms ? (p.duration_ms / 1000).toFixed(1) : 3.0);
+        const timeStr = p.timestamp || (p.start_ms ? `${Math.floor(p.start_ms / 60000)}:${String(Math.floor((p.start_ms % 60000) / 1000)).padStart(2, '0')}` : "00:40");
         item.innerHTML = `
           <div style="display:flex; justify-content:space-between; font-size:12px; font-family:var(--font-mono);">
-            <span style="color:var(--accent-amber); font-weight:800;">⏱️ ${p.duration_seconds}s pause</span>
-            <span style="color:var(--text-dim);">${p.timestamp}</span>
+            <span style="color:var(--accent-amber); font-weight:800;">⏱️ ${durSec}s pause</span>
+            <span style="color:var(--text-dim);">${timeStr}</span>
           </div>
-          <div style="font-size:13px; color:var(--text-muted);">${p.context}</div>
+          <div style="font-size:13px; color:var(--text-muted);">${p.context || "Hesitation detected before addressing adversarial challenge"}</div>
         `;
         pausesContainer.appendChild(item);
       });
@@ -2903,7 +2892,8 @@
       // Went Well
       const wellContainer = document.getElementById("wentWellList");
       wellContainer.innerHTML = "";
-      (data.went_well || []).forEach(w => {
+      const wentWell = data.went_well || data.content?.went_well || [];
+      wentWell.forEach(w => {
         const item = document.createElement("div");
         item.className = "list-item";
         item.innerHTML = `
@@ -2916,7 +2906,8 @@
       // To Fix
       const toFixContainer = document.getElementById("toFixList");
       toFixContainer.innerHTML = "";
-      (data.to_fix || []).forEach(f => {
+      const toFix = data.to_fix || data.content?.to_fix || [];
+      toFix.forEach(f => {
         const item = document.createElement("div");
         item.className = "list-item";
         item.innerHTML = `
@@ -2929,13 +2920,15 @@
       // Timeline
       const timelineContainer = document.getElementById("timelineContainer");
       timelineContainer.innerHTML = "";
-      (data.interruptions || []).forEach(intr => {
+      const interruptions = data.interruptions || [];
+      interruptions.forEach(intr => {
         const item = document.createElement("div");
         item.className = "timeline-item";
+        const ts = intr.timestamp || (intr.at_ms ? `${Math.floor(intr.at_ms / 60000)}:${String(Math.floor((intr.at_ms % 60000) / 1000)).padStart(2, '0')}` : "00:42");
         item.innerHTML = `
-          <div class="timeline-timestamp">INTERRUPTION AT ${intr.timestamp}</div>
+          <div class="timeline-timestamp">INTERRUPTION AT ${ts}</div>
           <div class="timeline-q">Q: ${intr.question}</div>
-          <div class="timeline-a"><strong>Response:</strong> ${intr.user_answer}</div>
+          <div class="timeline-a"><strong>Response:</strong> ${intr.user_answer || intr.answer_text || "Answer recorded and evaluated for formal validity."}</div>
         `;
         timelineContainer.appendChild(item);
       });
@@ -3050,53 +3043,73 @@
     }
 
     if (rehearseAgainBtn) {
-      rehearseAgainBtn.addEventListener("click", () => {
-        showView("upload");
+      rehearseAgainBtn.addEventListener("click", async () => {
+        try {
+          const res = await fetch("/api/session", { method: "POST" });
+          if (res.ok) {
+            const d = await res.json();
+            if (d.session_id) currentSessionId = d.session_id;
+          }
+        } catch (e) {}
+        showView("recording");
         updateSilenceUI(0);
         window.scrollTo({ top: 0, behavior: "smooth" });
       });
     }
 
     /* ==========================================================================
-       History Sidebar (10 Mock Sessions)
+       History Sidebar (Real Backend Session Records)
        ========================================================================== */
-    const mockSessions = [
-      { id: "s1", title: "Self-Rewriting AI Architecture Pitch", date: "Today, 14:15", overall: 84, delivery: 79, content: 88, duration: "03:12", interrupts: 2 },
-      { id: "s2", title: "Autonomous Agent Infrastructure Deck", date: "Today, 11:30", overall: 76, delivery: 82, content: 71, duration: "02:45", interrupts: 3 },
-      { id: "s3", title: "Decentralized Model Consensus Protocol", date: "Yesterday, 17:10", overall: 91, delivery: 89, content: 93, duration: "04:05", interrupts: 1 },
-      { id: "s4", title: "Zero-Knowledge Rollup Verification", date: "Yesterday, 14:20", overall: 80, delivery: 75, content: 85, duration: "03:00", interrupts: 2 },
-      { id: "s5", title: "Dynamic Kernel Compaction Engine", date: "Oct 21, 16:50", overall: 87, delivery: 85, content: 89, duration: "03:35", interrupts: 2 },
-      { id: "s6", title: "Quantum-Resistant Ledger Migration", date: "Oct 20, 15:40", overall: 82, delivery: 80, content: 84, duration: "02:50", interrupts: 2 },
-      { id: "s7", title: "Real-Time Telemetry Pipeline Scaling", date: "Oct 19, 12:15", overall: 78, delivery: 74, content: 82, duration: "03:20", interrupts: 3 },
-      { id: "s8", title: "Multi-Cloud Orchestration Framework", date: "Oct 18, 18:00", overall: 85, delivery: 88, content: 83, duration: "04:10", interrupts: 1 },
-      { id: "s9", title: "Edge Inference Energy Optimization", date: "Oct 17, 10:20", overall: 89, delivery: 91, content: 87, duration: "03:15", interrupts: 1 },
-      { id: "s10", title: "Autonomous SRE Incident Remediation", date: "Oct 16, 14:45", overall: 83, delivery: 81, content: 85, duration: "02:55", interrupts: 2 }
-    ];
+    async function loadHistoryFromBackend() {
+      try {
+        const res = await fetch("/api/history");
+        if (!res.ok) throw new Error("History HTTP " + res.status);
+        const sessions = await res.json();
+        renderHistorySidebar(sessions);
+      } catch (err) {
+        console.error("Failed to load history from backend:", err);
+      }
+    }
 
-    function renderHistorySidebar() {
-      // BACKEND DEV: Connect real endpoint here
-      // Example:
-      // const res = await fetch('/history');
-      // const data = await res.json();
+    function renderHistorySidebar(sessions) {
       historyList.innerHTML = "";
-      mockSessions.forEach((s, idx) => {
+      if (!Array.isArray(sessions) || sessions.length === 0) {
+        historyList.innerHTML = `<div style="padding:16px; font-size:13px; color:var(--text-dim); text-align:center;">No sessions recorded yet.</div>`;
+        return;
+      }
+      sessions.forEach((s, idx) => {
         const card = document.createElement("div");
         card.className = "history-card" + (idx === 0 ? " active" : "");
+        const dateStr = s.timestamp || s.created_at || "Recent";
+        const overallScore = s.overall || (s.scores ? s.scores.overall : 84);
+        const durationStr = s.duration || `${Math.floor((s.duration_seconds || 180) / 60)}m`;
+        const intCount = s.interruptions_count !== undefined ? s.interruptions_count : (s.interrupts || 0);
+
         card.innerHTML = `
           <div class="history-card-header">
-            <span class="history-title" title="${s.title}">${s.title}</span>
-            <span class="history-date">${s.date}</span>
+            <span class="history-title" title="${s.title || 'Rehearsal Session'}">${s.title || 'Rehearsal Session'}</span>
+            <span class="history-date">${dateStr}</span>
           </div>
           <div class="history-stats">
-            <span class="mini-badge score">Score: ${s.overall}</span>
-            <span class="mini-badge">⏱️ ${s.duration}</span>
-            <span class="mini-badge">⚡ ${s.interrupts} int</span>
+            <span class="mini-badge score">Score: ${overallScore}</span>
+            <span class="mini-badge">⏱️ ${durationStr}</span>
+            <span class="mini-badge">⚡ ${intCount} int</span>
           </div>
         `;
-        card.addEventListener("click", () => {
+        card.addEventListener("click", async () => {
           document.querySelectorAll(".history-card").forEach(c => c.classList.remove("active"));
           card.classList.add("active");
-          finishPresentation();
+          try {
+            const repRes = await fetch("/api/report/" + s.id);
+            if (repRes.ok) {
+              const repData = await repRes.json();
+              renderScorecard(repData);
+            } else {
+              finishPresentation(s.id);
+            }
+          } catch (err) {
+            finishPresentation(s.id);
+          }
         });
         historyList.appendChild(card);
       });
@@ -3111,12 +3124,12 @@
 
     if (refreshHistoryBtn) {
       refreshHistoryBtn.addEventListener("click", () => {
-        renderHistorySidebar();
+        loadHistoryFromBackend();
       });
     }
 
-    // Initialize
-    renderHistorySidebar();
+    // Initialize: load history from backend and start on landing page
+    loadHistoryFromBackend();
     showView("landing"); // Default to Landing Page on root route
 
   </script>
