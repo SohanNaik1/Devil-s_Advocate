@@ -76,6 +76,12 @@ log.info("Model loaded in %.2fs", time.perf_counter() - _t0)
 app = Flask(__name__)
 
 
+@app.get("/healthz")
+def healthz() -> tuple:
+    """Liveness probe: returns 200 OK once the model is loaded."""
+    return "ok", 200
+
+
 @app.post("/transcribe")
 def transcribe() -> tuple:
     """Transcribe an uploaded audio file and return word-level timestamps.
